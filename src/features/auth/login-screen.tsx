@@ -1,14 +1,23 @@
-import { useState, useEffect } from 'react';
-import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, Animated, Pressable } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ThemedText } from '@/components/themed-text';
-import { ThemedView } from '@/components/themed-view';
-import { useLogin } from './api';
-import { Colors, Spacing } from '@/constants/theme';
+import { useState, useEffect } from "react";
+import {
+  View,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  StyleSheet,
+  Alert,
+  Animated,
+  Pressable,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { ThemedText } from "@/components/themed-text";
+import { ThemedView } from "@/components/themed-view";
+import { useLogin } from "./api";
+import { Colors, Spacing } from "@/constants/theme";
 
 export function LoginScreen() {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const loginMutation = useLogin();
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(24))[0];
@@ -31,7 +40,7 @@ export function LoginScreen() {
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
-      Alert.alert('Error', 'Please enter both email and password.');
+      Alert.alert("Error", "Please enter both email and password.");
       return;
     }
 
@@ -41,7 +50,10 @@ export function LoginScreen() {
         password,
       });
     } catch (error) {
-      Alert.alert('Login Failed', error instanceof Error ? error.message : 'Invalid credentials.');
+      Alert.alert(
+        "Login Failed",
+        error instanceof Error ? error.message : "Invalid credentials.",
+      );
     }
   };
 
@@ -56,9 +68,15 @@ export function LoginScreen() {
             paddingTop: Math.max(insets.top, Spacing.five),
             paddingBottom: Math.max(insets.bottom, Spacing.five),
           },
-        ]}>
+        ]}
+      >
         <View style={styles.header}>
-          <View style={[styles.logoCircle, { backgroundColor: Colors.light.primary }]}>
+          <View
+            style={[
+              styles.logoCircle,
+              { backgroundColor: Colors.light.primary },
+            ]}
+          >
             <Text style={styles.logoText}>B</Text>
           </View>
           <ThemedText type="title" style={styles.title}>
@@ -75,12 +93,17 @@ export function LoginScreen() {
         <View
           style={[
             styles.formCard,
-            { backgroundColor: Colors.light.card, borderColor: Colors.light.border },
-          ]}>
+            {
+              backgroundColor: Colors.light.card,
+              borderColor: Colors.light.border,
+            },
+          ]}
+        >
           <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Email</Text>
             <TextInput
               style={[styles.input, { color: Colors.light.text }]}
-              placeholder="Email"
+              placeholder="Enter your email"
               placeholderTextColor={Colors.light.textSecondary}
               value={email}
               onChangeText={setEmail}
@@ -90,12 +113,13 @@ export function LoginScreen() {
             />
           </View>
 
-          <View style={[styles.divider, { backgroundColor: Colors.light.border }]} />
+          <View style={styles.divider} />
 
           <View style={styles.inputWrapper}>
+            <Text style={styles.inputLabel}>Password</Text>
             <TextInput
               style={[styles.input, { color: Colors.light.text }]}
-              placeholder="Password"
+              placeholder="Enter your password"
               placeholderTextColor={Colors.light.textSecondary}
               value={password}
               onChangeText={setPassword}
@@ -109,9 +133,15 @@ export function LoginScreen() {
             style={[styles.button, { backgroundColor: Colors.light.primary }]}
             onPress={handleLogin}
             disabled={loginMutation.isPending}
-            activeOpacity={0.85}>
-            <Text style={[styles.buttonText, { color: Colors.light.primaryForeground }]}>
-              {loginMutation.isPending ? 'Signing in...' : 'Sign In'}
+            activeOpacity={0.85}
+          >
+            <Text
+              style={[
+                styles.buttonText,
+                { color: Colors.light.primaryForeground },
+              ]}
+            >
+              {loginMutation.isPending ? "Signing in..." : "Sign In"}
             </Text>
           </TouchableOpacity>
         </View>
@@ -130,88 +160,107 @@ const styles = StyleSheet.create({
   },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    justifyContent: "center",
+    paddingHorizontal: Spacing.four,
   },
   header: {
-    alignItems: 'center',
+    alignItems: "center",
     marginBottom: Spacing.five,
   },
   logoCircle: {
-    width: 88,
-    height: 88,
-    borderRadius: 44,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginBottom: Spacing.four,
-    shadowColor: '#6f3e1d',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.25,
-    shadowRadius: 16,
-    elevation: 8,
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    justifyContent: "center",
+    alignItems: "center",
+    marginBottom: Spacing.three,
+    shadowColor: "#6f3e1d",
+    shadowOffset: { width: 0, height: 6 },
+    shadowOpacity: 0.2,
+    shadowRadius: 12,
+    elevation: 6,
   },
   logoText: {
     color: Colors.light.primaryForeground,
-    fontSize: 40,
-    fontWeight: '700',
-    letterSpacing: 1,
+    fontSize: 28,
+    fontWeight: "700",
+    letterSpacing: 0.5,
   },
   title: {
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: Spacing.one,
+    fontSize: 28,
+    lineHeight: 32,
   },
   subtitle: {
-    textAlign: 'center',
+    textAlign: "center",
     color: Colors.light.textSecondary,
     marginBottom: Spacing.one,
+    fontSize: 16,
+    lineHeight: 22,
   },
   tagline: {
-    textAlign: 'center',
+    textAlign: "center",
     color: Colors.light.textSecondary,
-    fontStyle: 'italic',
+    fontStyle: "italic",
+    fontSize: 14,
+    lineHeight: 20,
   },
   formCard: {
-    borderRadius: 24,
+    borderRadius: 20,
     padding: Spacing.four,
     borderWidth: 1,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 3,
+    shadowColor: "#000",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.05,
+    shadowRadius: 10,
+    elevation: 2,
   },
   inputWrapper: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    gap: Spacing.two,
+  },
+  inputLabel: {
+    fontSize: 14,
+    fontWeight: "600",
+    color: Colors.light.text,
+    lineHeight: 20,
   },
   divider: {
     height: 1,
-    marginVertical: Spacing.two,
+    marginVertical: Spacing.three,
+    backgroundColor: Colors.light.border,
   },
   input: {
     height: 48,
     fontSize: 16,
     paddingHorizontal: Spacing.three,
+    borderRadius: 12,
+    borderWidth: 1,
+    borderColor: Colors.light.border,
+    backgroundColor: Colors.light.background,
   },
   button: {
     height: 52,
     borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-    marginTop: Spacing.three,
-    shadowColor: '#6f3e1d',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.2,
-    shadowRadius: 8,
-    elevation: 4,
+    justifyContent: "center",
+    alignItems: "center",
+    marginTop: Spacing.four,
+    shadowColor: "#6f3e1d",
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.18,
+    shadowRadius: 6,
+    elevation: 3,
   },
   buttonText: {
     fontSize: 16,
-    fontWeight: '700',
-    letterSpacing: 0.5,
+    fontWeight: "700",
+    letterSpacing: 0.3,
   },
   footerText: {
-    textAlign: 'center',
+    textAlign: "center",
     marginTop: Spacing.five,
     color: Colors.light.textSecondary,
+    fontSize: 12,
+    lineHeight: 16,
   },
 });

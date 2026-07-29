@@ -6,7 +6,7 @@ import { AnimatedSplashOverlay } from '@/components/animated-icon';
 import { QueryProvider } from '@/providers/query-provider';
 import { CartProvider } from '@/features/cart/cart-context';
 import { ToastProvider } from '@/features/toast/toast-context';
-import { useAuth } from '@/features/auth/api';
+import { authClient } from '@/lib/auth-client';
 import * as SplashScreen from 'expo-splash-screen';
 
 SplashScreen.preventAutoHideAsync();
@@ -28,12 +28,12 @@ export default function RootLayout() {
 }
 
 function RootLayoutContent() {
-  const { data: session, isFetching } = useAuth();
+  const { data: session, isPending } = authClient.useSession();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isFetching) return;
+    if (isPending) return;
 
     const inAuthGroup = (segments[0] as string) === 'login';
 
@@ -42,15 +42,15 @@ function RootLayoutContent() {
     } else if (session && inAuthGroup) {
       router.replace('/' as any);
     }
-  }, [session, isFetching, segments]);
+  }, [session, isPending, segments]);
 
   useEffect(() => {
-    if (!isFetching) {
+    if (!isPending) {
       SplashScreen.hideAsync();
     }
-  }, [isFetching]);
+  }, [isPending]);
 
-  if (isFetching) {
+  if (isPending) {
     return <AnimatedSplashOverlay />;
   }
 

@@ -1,67 +1,15 @@
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import Constants from 'expo-constants';
-import * as SecureStore from 'expo-secure-store';
-import { LoginCredentials, AuthSession } from './types';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import Constants from "expo-constants";
+import { authClient } from "@/lib/auth-client";
+import { LoginCredentials, AuthSession } from "./types";
 
-const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl ?? 'http://localhost:3000';
-
-async function getStoredCookies(): Promise<string> {
-  const stored = await SecureStore.getItemAsync('brewflow_auth_cookies');
-  return stored ?? '';
-}
-
-async function setStoredCookies(cookies: string): Promise<void> {
-  if (cookies) {
-    await SecureStore.setItemAsync('brewflow_auth_cookies', cookies);
-  } else {
-    await SecureStore.deleteItemAsync('brewflow_auth_cookies');
-  }
-}
-
-function parseSetCookieHeader(setCookieHeader: string): string[] {
-  const cookies: string[] = [];
-  const parts = setCookieHeader.split(', ');
-  for (const part of parts) {
-    const [nameValue] = part.split(';');
-    if (nameValue) {
-      cookies.push(nameValue.trim());
-    }
-  }
-  return cookies;
-}
-
-async function updateCookiesFromResponse(response: Response): Promise<void> {
-  const setCookieHeader = response.headers.get('set-cookie');
-  if (setCookieHeader) {
-    const cookies = parseSetCookieHeader(setCookieHeader);
-    const existingCookies = await getStoredCookies();
-    const cookieMap = new Map<string, string>();
-
-    if (existingCookies) {
-      for (const cookie of existingCookies.split('; ')) {
-        const [name] = cookie.split('=');
-        if (name) {
-          cookieMap.set(name, cookie);
-        }
-      }
-    }
-
-    for (const cookie of cookies) {
-      const [name] = cookie.split('=');
-      if (name) {
-        cookieMap.set(name, cookie);
-      }
-    }
-
-    const updatedCookies = Array.from(cookieMap.values()).join('; ');
-    await setStoredCookies(updatedCookies);
-  }
-}
+const API_BASE_URL =
+  Constants.expoConfig?.extra?.apiBaseUrl ?? "http://localhost:3000";
 
 async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const cookies = await getStoredCookies();
+  const cookies = (authClient as unknown as { getCookie: () => string }).getCookie();
   const headers: Record<string, string> = {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
     ...(cookies ? { Cookie: cookies } : {}),
     ...(options.headers as Record<string, string> | undefined),
   };
@@ -71,53 +19,46 @@ async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T>
     headers,
   });
 
-  await updateCookiesFromResponse(response);
-
   if (!response.ok) {
-    const error = await response.json().catch(() => ({ message: 'Request failed' }));
-    throw new Error((error as { message?: string }).message || `HTTP ${response.status}`);
+    const error = await response
+      .json()
+      .catch(() => ({ message: "Request failed" }));
+    throw new Error(
+      (error as { message?: string }).message || `HTTP ${response.status}`,
+    );
   }
 
   return response.json();
 }
 
-export async function login(credentials: LoginCredentials): Promise<AuthSession> {
-  const response = await authFetch<{ user: AuthSession['user'] }>('/api/auth/sign-in/email', {
-    method: 'POST',
-    body: JSON.stringify({
-      email: credentials.email,
-      password: credentials.password,
-    }),
+export async function login(
+  credentials: LoginCredentials,
+): Promise<AuthSession> {
+  const response = await authClient.signIn.email({
+    email: credentials.email,
+    password: credentials.password,
   });
 
-  await SecureStore.setItemAsync('brewflow_logged_in', 'true');
-  return { user: response.user };
+  return { user: (response as any).user };
 }
 
 export async function logout(): Promise<void> {
   try {
-    await authFetch('/api/auth/sign-out', { method: 'POST' });
+    await authClient.signOut();
   } catch {
     // ignore
-  } finally {
-    await SecureStore.deleteItemAsync('brewflow_logged_in');
-    await SecureStore.deleteItemAsync('brewflow_auth_cookies');
   }
 }
 
 export function useAuth() {
   return useQuery({
-    queryKey: ['auth', 'session'],
+    queryKey: ["auth", "session"],
     queryFn: async () => {
-      const isLoggedIn = await SecureStore.getItemAsync('brewflow_logged_in');
-      if (!isLoggedIn) return null;
-
       try {
-        const response = await authFetch<{ user: AuthSession['user'] }>('/api/auth/get-session');
-        return { user: response.user };
+        const session = (await authClient.getSession()) as { user?: AuthSession["user"] } | null;
+        if (!session?.user) return null;
+        return { user: session.user };
       } catch {
-        await SecureStore.deleteItemAsync('brewflow_logged_in');
-        await SecureStore.deleteItemAsync('brewflow_auth_cookies');
         return null;
       }
     },
@@ -130,7 +71,7 @@ export function useLogin() {
   return useMutation({
     mutationFn: login,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
   });
 }
@@ -141,7 +82,7 @@ export function useLogout() {
   return useMutation({
     mutationFn: logout,
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['auth'] });
+      queryClient.invalidateQueries({ queryKey: ["auth"] });
     },
   });
 }

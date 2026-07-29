@@ -11,13 +11,13 @@ import {
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
-import { useLogin } from "./api";
+import { authClient } from "@/lib/auth-client";
 import { Colors, Spacing } from "@/constants/theme";
 
 export function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const loginMutation = useLogin();
+  const [isPending, setIsPending] = useState(false);
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(24))[0];
   const insets = useSafeAreaInsets();
@@ -43,8 +43,9 @@ export function LoginScreen() {
       return;
     }
 
+    setIsPending(true);
     try {
-      await loginMutation.mutateAsync({
+      await authClient.signIn.email({
         email: email.trim(),
         password,
       });
@@ -53,6 +54,8 @@ export function LoginScreen() {
         "Login Failed",
         error instanceof Error ? error.message : "Invalid credentials.",
       );
+    } finally {
+      setIsPending(false);
     }
   };
 
@@ -131,7 +134,7 @@ export function LoginScreen() {
           <TouchableOpacity
             style={[styles.button, { backgroundColor: Colors.light.primary }]}
             onPress={handleLogin}
-            disabled={loginMutation.isPending}
+            disabled={isPending}
             activeOpacity={0.85}
           >
             <Text
@@ -140,7 +143,7 @@ export function LoginScreen() {
                 { color: Colors.light.primaryForeground },
               ]}
             >
-              {loginMutation.isPending ? "Signing in..." : "Sign In"}
+              {isPending ? "Signing in..." : "Sign In"}
             </Text>
           </TouchableOpacity>
         </View>

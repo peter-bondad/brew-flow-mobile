@@ -47,5 +47,9 @@
     "web": "expo start --web",
     "lint": "expo lint"
   },
-  "private": true
+  "private": true,
+  "allowScripts": {
+    "expo-secure-store@57.0.1": true,
+    "expo-network@57.0.1": true
+  }
 }

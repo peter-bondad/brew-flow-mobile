@@ -9,7 +9,6 @@ import {
   Animated,
 } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
 import { ThemedText } from "@/components/themed-text";
 import { ThemedView } from "@/components/themed-view";
 import { useLogin } from "./api";
@@ -19,7 +18,6 @@ export function LoginScreen() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const loginMutation = useLogin();
-  const router = useRouter();
   const fadeAnim = useState(new Animated.Value(0))[0];
   const slideAnim = useState(new Animated.Value(24))[0];
   const insets = useSafeAreaInsets();
@@ -50,7 +48,6 @@ export function LoginScreen() {
         email: email.trim(),
         password,
       });
-      router.replace("/" as any);
     } catch (error) {
       Alert.alert(
         "Login Failed",

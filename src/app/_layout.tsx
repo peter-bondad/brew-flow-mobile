@@ -28,30 +28,29 @@ export default function RootLayout() {
 }
 
 function RootLayoutContent() {
-  const { data: session, isLoading } = useAuth();
+  const { data: session, isFetching } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
   useEffect(() => {
-    if (isLoading) return;
+    if (isFetching) return;
 
     const inAuthGroup = (segments[0] as string) === 'login';
-    const inTabsGroup = (segments[0] as string) === '(tabs)';
 
     if (!session && !inAuthGroup) {
       router.replace('/login' as any);
     } else if (session && inAuthGroup) {
       router.replace('/' as any);
     }
-  }, [session, isLoading, segments]);
+  }, [session, isFetching, segments]);
 
   useEffect(() => {
-    if (!isLoading) {
+    if (!isFetching) {
       SplashScreen.hideAsync();
     }
-  }, [isLoading]);
+  }, [isFetching]);
 
-  if (isLoading) {
+  if (isFetching) {
     return <AnimatedSplashOverlay />;
   }
 

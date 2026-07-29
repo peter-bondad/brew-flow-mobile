@@ -82,11 +82,20 @@ async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T>
 }
 
 export async function login(credentials: LoginCredentials): Promise<AuthSession> {
+  let csrfToken: string | undefined;
+  try {
+    const csrfResponse = await authFetch<{ csrfToken: string }>('/api/auth/csrf');
+    csrfToken = csrfResponse.csrfToken;
+  } catch {
+    // If CSRF endpoint is not available, continue without it
+  }
+
   const response = await authFetch<{ user: AuthSession['user'] }>('/api/auth/sign-in/email', {
     method: 'POST',
     body: JSON.stringify({
       email: credentials.email,
       password: credentials.password,
+      ...(csrfToken ? { csrfToken } : {}),
     }),
   });
 

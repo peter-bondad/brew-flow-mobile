@@ -1,4 +1,4 @@
-import { View, Text, TouchableOpacity, FlatList, StyleSheet, Alert, Pressable } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Alert, Pressable } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
 import { ThemedView } from '@/components/themed-view';
@@ -7,8 +7,7 @@ import { OrderItem, OrderStatus } from './types';
 import { Colors, Spacing } from '@/constants/theme';
 
 const NEXT_STATUS: Record<string, OrderStatus[]> = {
-  pending: ['paid', 'preparing', 'cancelled'],
-  paid: ['preparing', 'cancelled'],
+  pending: ['preparing', 'cancelled'],
   preparing: ['ready', 'cancelled'],
   ready: ['completed', 'cancelled'],
   completed: [],
@@ -17,7 +16,6 @@ const NEXT_STATUS: Record<string, OrderStatus[]> = {
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   pending: { bg: '#fef3c7', text: '#92400e' },
-  paid: { bg: '#dbeafe', text: '#1e40af' },
   preparing: { bg: '#dbeafe', text: '#1e40af' },
   ready: { bg: '#d1fae5', text: '#065f46' },
   completed: { bg: '#d1fae5', text: '#065f46' },
@@ -100,7 +98,7 @@ export function OrderDetailScreen({ orderId }: OrderDetailScreenProps) {
     );
   };
 
-  const canCancel = order.status === 'pending' || order.status === 'paid';
+  const canCancel = order.status === 'pending';
 
   const renderItem = ({ item }: { item: OrderItem }) => (
     <View style={[styles.itemCard, { backgroundColor: Colors.light.card, borderColor: Colors.light.border }]}>

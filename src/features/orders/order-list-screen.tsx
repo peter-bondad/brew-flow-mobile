@@ -8,21 +8,33 @@ import { ThemedView } from "@/components/themed-view";
 import { Colors, Spacing } from "@/constants/theme";
 
 import { useMyOrders } from "./api";
-import { OrderListItem } from "./types";
+import { OrderListItem, OrderStatus } from "./types";
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
   pending: { bg: "#fef3c7", text: "#92400e" },
-  paid: { bg: "#dbeafe", text: "#1e40af" },
   preparing: { bg: "#dbeafe", text: "#1e40af" },
   ready: { bg: "#d1fae5", text: "#065f46" },
   completed: { bg: "#d1fae5", text: "#065f46" },
   cancelled: { bg: "#fee2e2", text: "#991b1b" },
 };
 
+type OrderFilter = OrderStatus | "all";
+
+const FILTER_OPTIONS: { value: OrderFilter; label: string }[] = [
+  { value: "completed", label: "Completed" },
+  { value: "cancelled", label: "Cancelled" },
+  { value: "all", label: "All" },
+];
+
 export function OrderListScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { data, isLoading, error, refetch } = useMyOrders();
+  const [filter, setFilter] = useState<OrderFilter>("completed");
+  const { data, isLoading, error, refetch } = useMyOrders(
+    20,
+    0,
+    filter === "all" ? undefined : filter,
+  );
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const orders = data?.data ?? [];
@@ -31,6 +43,30 @@ export function OrderListScreen() {
     setIsRefreshing(true);
     await refetch();
     setIsRefreshing(false);
+  };
+
+  const renderFilterChip = (option: { value: OrderFilter; label: string }) => {
+    const isActive = filter === option.value;
+    return (
+      <Pressable
+        key={option.value}
+        style={[
+          styles.filterChip,
+          isActive
+            ? { backgroundColor: Colors.light.primary }
+            : { backgroundColor: Colors.light.card, borderColor: Colors.light.border },
+        ]}
+        onPress={() => setFilter(option.value)}>
+        <ThemedText
+          type="small"
+          style={{
+            color: isActive ? Colors.light.primaryForeground : Colors.light.text,
+            fontWeight: isActive ? "700" : "500",
+          }}>
+          {option.label}
+        </ThemedText>
+      </Pressable>
+    );
   };
 
   const renderItem = ({ item }: { item: OrderListItem }) => {
@@ -133,8 +169,19 @@ export function OrderListScreen() {
     );
   }
 
+  const emptyTitle =
+    filter === "completed"
+      ? "No completed orders yet"
+      : filter === "cancelled"
+        ? "No cancelled orders"
+        : "No orders found";
+
   return (
     <ThemedView style={[styles.container, { paddingTop: Math.max(insets.top, Spacing.three) }]}>
+      <View style={styles.filterRow}>
+        {FILTER_OPTIONS.map(renderFilterChip)}
+      </View>
+
       <FlatList
         style={{ flex: 1 }}
         data={orders}
@@ -158,7 +205,7 @@ export function OrderListScreen() {
             </View>
 
             <ThemedText type="smallBold" style={styles.emptyTitle}>
-              No orders yet
+              {emptyTitle}
             </ThemedText>
 
             <ThemedText
@@ -184,9 +231,24 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
+  filterRow: {
+    flexDirection: "row",
+    gap: Spacing.two,
+    paddingHorizontal: Spacing.three,
+    paddingBottom: Spacing.two,
+  },
+
+  filterChip: {
+    paddingHorizontal: Spacing.three,
+    paddingVertical: Spacing.two,
+    borderRadius: 20,
+    borderWidth: 1,
+  },
+
   listContent: {
-    padding: Spacing.three,
+    paddingHorizontal: Spacing.three,
     gap: Spacing.three,
+    paddingBottom: 120,
   },
 
   orderCard: {

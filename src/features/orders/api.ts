@@ -1,6 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Constants from 'expo-constants';
-import { Order, OrderListResponse, OrderDetailResponse, OrderStatus } from './types';
+import { OrderListResponse, OrderDetailResponse, OrderStatus } from './types';
 
 const API_BASE_URL = Constants.expoConfig?.extra?.apiBaseUrl ?? 'http://localhost:3000';
 
@@ -22,11 +22,18 @@ async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T>
   return response.json();
 }
 
-export function useMyOrders(limit = 20, offset = 0) {
+export function useMyOrders(limit = 20, offset = 0, status?: OrderStatus) {
+  const params = new URLSearchParams();
+  params.set("limit", String(limit));
+  params.set("offset", String(offset));
+  if (status) {
+    params.set("status", status);
+  }
+
   return useQuery({
-    queryKey: ['orders', 'me', { limit, offset }],
+    queryKey: ["orders", "me", { limit, offset, status }],
     queryFn: () =>
-      authFetch<OrderListResponse>(`/api/orders/me?limit=${limit}&offset=${offset}`),
+      authFetch<OrderListResponse>(`/api/orders/me?${params.toString()}`),
   });
 }
 

@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
+import { View, Text, FlatList, StyleSheet, Pressable, Alert } from 'react-native';
 import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ThemedText } from '@/components/themed-text';
@@ -42,6 +42,18 @@ export function ActiveOrdersScreen() {
   const renderItem = ({ item }: { item: OrderListItem }) => {
     const statusColor = STATUS_COLORS[item.status] ?? STATUS_COLORS.pending;
     const actions = STATUS_ACTIONS[item.status] ?? [];
+    const lowStockWarnings = item.lowStockWarnings ?? [];
+
+    const handleWarningPress = () => {
+      if (lowStockWarnings.length === 0) return;
+      const lines = lowStockWarnings.map(
+        (warning) =>
+          `• ${warning.ingredientName}: ${warning.currentStock} left (min ${warning.minimumStockLevel})`,
+      );
+      Alert.alert("Low Stock Warning", lines.join("\n"), [
+        { text: "Got it", style: "default" },
+      ]);
+    };
 
     return (
       <Pressable
@@ -77,6 +89,33 @@ export function ActiveOrdersScreen() {
             </ThemedText>
           </View>
         </View>
+
+        {lowStockWarnings.length > 0 && (
+          <Pressable
+            style={({ pressed }) => [
+              styles.warningRow,
+              { backgroundColor: '#fef2f2', borderColor: '#fecaca' },
+              pressed && { opacity: 0.85 },
+            ]}
+            onPress={handleWarningPress}>
+            <Text style={styles.warningIcon}>⚠️</Text>
+            <View style={styles.warningTextWrap}>
+              <ThemedText type="smallBold" style={{ color: '#b91c1c' }}>
+                Low stock warning
+              </ThemedText>
+              <ThemedText
+                type="small"
+                style={{ color: '#991b1b' }}
+                numberOfLines={1}
+              >
+                {lowStockWarnings
+                  .map((w) => `${w.ingredientName} (${w.currentStock} left)`)
+                  .join(', ')}
+              </ThemedText>
+            </View>
+            <Text style={[styles.warningChevron, { color: '#991b1b' }]}>›</Text>
+          </Pressable>
+        )}
 
         <View
           style={[styles.divider, { backgroundColor: Colors.light.border }]}
@@ -279,6 +318,24 @@ const styles = StyleSheet.create({
 
   actionButtonText: {
     fontSize: 13,
+    fontWeight: '700',
+  },
+  warningRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: Spacing.two,
+    padding: Spacing.three,
+    borderRadius: 12,
+    borderWidth: 1,
+  },
+  warningIcon: {
+    fontSize: 18,
+  },
+  warningTextWrap: {
+    flex: 1,
+  },
+  warningChevron: {
+    fontSize: 20,
     fontWeight: '700',
   },
 

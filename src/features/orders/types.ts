@@ -29,6 +29,12 @@ export interface OrderListItem {
   total: number;
   itemCount: number;
   createdAt: string;
+  lowStockWarnings: {
+    ingredientId: string;
+    ingredientName: string;
+    currentStock: number;
+    minimumStockLevel: number;
+  }[];
 }
 
 export interface OrderListResponse {

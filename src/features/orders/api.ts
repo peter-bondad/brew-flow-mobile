@@ -22,16 +22,25 @@ async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T>
   return response.json();
 }
 
-export function useMyOrders(limit = 20, offset = 0, status?: OrderStatus) {
+export function useMyOrders(limit = 20, offset = 0, status?: OrderStatus, search?: string, dateFrom?: string, dateTo?: string) {
   const params = new URLSearchParams();
   params.set("limit", String(limit));
   params.set("offset", String(offset));
   if (status) {
     params.set("status", status);
   }
+  if (search) {
+    params.set("search", search);
+  }
+  if (dateFrom) {
+    params.set("dateFrom", dateFrom);
+  }
+  if (dateTo) {
+    params.set("dateTo", dateTo);
+  }
 
   return useQuery({
-    queryKey: ["orders", "me", { limit, offset, status }],
+    queryKey: ["orders", "me", { limit, offset, status, search, dateFrom, dateTo }],
     queryFn: () =>
       authFetch<OrderListResponse>(`/api/orders/me?${params.toString()}`),
   });

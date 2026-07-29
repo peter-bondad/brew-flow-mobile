@@ -1,5 +1,5 @@
 import { createAuthClient } from "better-auth/react";
-import type { BetterAuthClientPlugin } from "@better-auth/core";
+import type { BetterAuthClientPlugin } from "better-auth";
 import { expoClient } from "@better-auth/expo/client";
 import * as SecureStore from "expo-secure-store";
 

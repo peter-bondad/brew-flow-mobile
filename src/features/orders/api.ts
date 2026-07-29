@@ -37,6 +37,17 @@ export function useMyOrders(limit = 20, offset = 0, status?: OrderStatus) {
   });
 }
 
+export function useActiveOrders(limit = 20, offset = 0) {
+  return useQuery({
+    queryKey: ["orders", "me", "active", { limit, offset }],
+    queryFn: () =>
+      authFetch<OrderListResponse>(
+        `/api/orders/me/active?limit=${limit}&offset=${offset}`,
+      ),
+    refetchInterval: 30000,
+  });
+}
+
 export function useOrder(id: string) {
   return useQuery({
     queryKey: ['orders', id],

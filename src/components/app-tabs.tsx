@@ -22,6 +22,14 @@ const AppTabsInner = () => {
         />
       </NativeTabs.Trigger>
 
+      <NativeTabs.Trigger name="active-orders">
+        <NativeTabs.Trigger.Label>Active Orders</NativeTabs.Trigger.Label>
+        <NativeTabs.Trigger.Icon
+          src={require('@/assets/images/tabIcons/explore.png')}
+          renderingMode="template"
+        />
+      </NativeTabs.Trigger>
+
       <NativeTabs.Trigger name="cart">
         <NativeTabs.Trigger.Label>Order</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
@@ -30,8 +38,8 @@ const AppTabsInner = () => {
         />
       </NativeTabs.Trigger>
 
-      <NativeTabs.Trigger name="orders">
-        <NativeTabs.Trigger.Label>Orders</NativeTabs.Trigger.Label>
+      <NativeTabs.Trigger name="order-history">
+        <NativeTabs.Trigger.Label>Order History</NativeTabs.Trigger.Label>
         <NativeTabs.Trigger.Icon
           src={require('@/assets/images/tabIcons/home.png')}
           renderingMode="template"

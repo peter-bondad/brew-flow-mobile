@@ -1,18 +1,18 @@
 import { Stack } from 'expo-router';
 import { ThemedView } from '@/components/themed-view';
-import { OrderListScreen } from '@/features/orders/order-list-screen';
+import { ActiveOrdersScreen } from '@/features/orders/active-orders-screen';
 import { HeaderButton } from '@/components/header-button';
 
-export default function OrdersScreen() {
+export default function ActiveOrdersScreenRoute() {
   return (
     <ThemedView style={{ flex: 1 }}>
       <Stack.Screen
         options={{
-          title: 'Orders',
+          title: 'Active Orders',
           headerRight: () => <HeaderButton />,
         }}
       />
-      <OrderListScreen />
+      <ActiveOrdersScreen />
     </ThemedView>
   );
 }

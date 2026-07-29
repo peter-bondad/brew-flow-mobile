@@ -46,7 +46,7 @@ export function ProductListScreen() {
     if (!data?.data) return [];
     const cats = new Set(data.data.map(p => p.category));
     return Array.from(cats).sort();
-  }, [data.data]);
+  }, [data?.data]);
 
   const renderItem = ({ item }: { item: ProductListItem }) => (
     <Pressable

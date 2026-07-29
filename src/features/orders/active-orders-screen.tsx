@@ -1,76 +1,47 @@
-import { useState } from "react";
-import { View, Text, FlatList, StyleSheet, Pressable } from "react-native";
-import { useRouter } from "expo-router";
-import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { useState, useCallback } from 'react';
+import { View, Text, FlatList, StyleSheet, Pressable } from 'react-native';
+import { useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
+import { Colors, Spacing } from '@/constants/theme';
 
-import { ThemedText } from "@/components/themed-text";
-import { ThemedView } from "@/components/themed-view";
-import { Colors, Spacing } from "@/constants/theme";
-
-import { useMyOrders } from "./api";
-import { OrderListItem, OrderStatus } from "./types";
+import { useActiveOrders } from './api';
+import { OrderListItem } from './types';
 
 const STATUS_COLORS: Record<string, { bg: string; text: string }> = {
-  pending: { bg: "#fef3c7", text: "#92400e" },
-  preparing: { bg: "#dbeafe", text: "#1e40af" },
-  ready: { bg: "#d1fae5", text: "#065f46" },
-  completed: { bg: "#d1fae5", text: "#065f46" },
-  cancelled: { bg: "#fee2e2", text: "#991b1b" },
+  pending: { bg: '#fef3c7', text: '#92400e' },
+  preparing: { bg: '#dbeafe', text: '#1e40af' },
+  ready: { bg: '#d1fae5', text: '#065f46' },
 };
 
-type OrderFilter = OrderStatus | "all";
+const STATUS_ACTIONS: Record<string, string[]> = {
+  pending: ['Start'],
+  preparing: ['Ready'],
+  ready: ['Complete'],
+};
 
-const FILTER_OPTIONS: { value: OrderFilter; label: string }[] = [
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-  { value: "all", label: "All" },
-];
-
-export function OrderListScreen() {
+export function ActiveOrdersScreen() {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const [filter, setFilter] = useState<OrderFilter>("completed");
-  const { data, isLoading, error, refetch } = useMyOrders(
-    20,
-    0,
-    filter === "all" ? undefined : filter,
-  );
+  const { data, isLoading, error, refetch } = useActiveOrders();
   const [isRefreshing, setIsRefreshing] = useState(false);
 
   const orders = data?.data ?? [];
 
-  const handleRefresh = async () => {
+  const handleRefresh = useCallback(async () => {
     setIsRefreshing(true);
     await refetch();
     setIsRefreshing(false);
-  };
+  }, [refetch]);
 
-  const renderFilterChip = (option: { value: OrderFilter; label: string }) => {
-    const isActive = filter === option.value;
-    return (
-      <Pressable
-        key={option.value}
-        style={[
-          styles.filterChip,
-          isActive
-            ? { backgroundColor: Colors.light.primary }
-            : { backgroundColor: Colors.light.card, borderColor: Colors.light.border },
-        ]}
-        onPress={() => setFilter(option.value)}>
-        <ThemedText
-          type="small"
-          style={{
-            color: isActive ? Colors.light.primaryForeground : Colors.light.text,
-            fontWeight: isActive ? "700" : "500",
-          }}>
-          {option.label}
-        </ThemedText>
-      </Pressable>
-    );
-  };
+  const handleStatusPress = useCallback((orderId: string, action: string) => {
+    router.push(`/order/${orderId}`);
+  }, [router]);
 
   const renderItem = ({ item }: { item: OrderListItem }) => {
     const statusColor = STATUS_COLORS[item.status] ?? STATUS_COLORS.pending;
+    const actions = STATUS_ACTIONS[item.status] ?? [];
 
     return (
       <Pressable
@@ -81,22 +52,19 @@ export function OrderListScreen() {
             borderColor: Colors.light.border,
           },
           pressed && { opacity: 0.85 },
-        ]}
-        onPress={() => router.push(`/order/${item.id}` as never)}
-      >
+        ]}>
         <View style={styles.orderHeader}>
           <View>
             <ThemedText type="smallBold">Order #{item.id.slice(-6)}</ThemedText>
-
             <ThemedText
               type="small"
               style={{ color: Colors.light.textSecondary }}
             >
-              {new Date(item.createdAt).toLocaleDateString("en-PH", {
-                month: "short",
-                day: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
+              {new Date(item.createdAt).toLocaleDateString('en-PH', {
+                month: 'short',
+                day: 'numeric',
+                hour: '2-digit',
+                minute: '2-digit',
               })}
             </ThemedText>
           </View>
@@ -123,10 +91,9 @@ export function OrderListScreen() {
                   { color: Colors.light.textSecondary },
                 ]}
               >
-                Payment
+                Items
               </Text>
-
-              <ThemedText type="smallBold">{item.paymentMethod}</ThemedText>
+              <ThemedText type="smallBold">{item.itemCount}</ThemedText>
             </View>
 
             <View style={styles.metaItem}>
@@ -136,17 +103,36 @@ export function OrderListScreen() {
                   { color: Colors.light.textSecondary },
                 ]}
               >
-                Items
+                Total
               </Text>
-
-              <ThemedText type="smallBold">{item.itemCount}</ThemedText>
+              <ThemedText type="smallBold" style={{ color: Colors.light.primary }}>
+                ₱{item.total.toFixed(2)}
+              </ThemedText>
             </View>
           </View>
-
-          <ThemedText type="subtitle" style={{ color: Colors.light.primary }}>
-            ₱{item.total.toFixed(2)}
-          </ThemedText>
         </View>
+
+        {actions.length > 0 && (
+          <View style={styles.actionsRow}>
+            {actions.map((action) => (
+              <Pressable
+                key={action}
+                style={[
+                  styles.actionButton,
+                  { backgroundColor: Colors.light.primary },
+                ]}
+                onPress={() => handleStatusPress(item.id, action)}>
+                <Text
+                  style={[
+                    styles.actionButtonText,
+                    { color: Colors.light.primaryForeground },
+                  ]}>
+                  {action}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        )}
       </Pressable>
     );
   };
@@ -154,7 +140,7 @@ export function OrderListScreen() {
   if (isLoading && !data) {
     return (
       <ThemedView style={styles.center}>
-        <ThemedText>Loading orders...</ThemedText>
+        <ThemedText>Loading active orders...</ThemedText>
       </ThemedView>
     );
   }
@@ -163,25 +149,14 @@ export function OrderListScreen() {
     return (
       <ThemedView style={styles.center}>
         <ThemedText style={{ color: Colors.light.destructive }}>
-          Failed to load orders.
+          Failed to load active orders.
         </ThemedText>
       </ThemedView>
     );
   }
 
-  const emptyTitle =
-    filter === "completed"
-      ? "No completed orders yet"
-      : filter === "cancelled"
-        ? "No cancelled orders"
-        : "No orders found";
-
   return (
     <ThemedView style={[styles.container, { paddingTop: Math.max(insets.top, Spacing.three) }]}>
-      <View style={styles.filterRow}>
-        {FILTER_OPTIONS.map(renderFilterChip)}
-      </View>
-
       <FlatList
         style={{ flex: 1 }}
         data={orders}
@@ -201,11 +176,11 @@ export function OrderListScreen() {
                 },
               ]}
             >
-              <Text style={styles.emptyEmoji}>📋</Text>
+              <Text style={styles.emptyEmoji}>☕</Text>
             </View>
 
             <ThemedText type="smallBold" style={styles.emptyTitle}>
-              {emptyTitle}
+              No active orders
             </ThemedText>
 
             <ThemedText
@@ -217,7 +192,7 @@ export function OrderListScreen() {
                 },
               ]}
             >
-              Orders will appear here after checkout.
+              New orders will appear here for fulfillment.
             </ThemedText>
           </View>
         }
@@ -231,24 +206,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
 
-  filterRow: {
-    flexDirection: "row",
-    gap: Spacing.two,
-    paddingHorizontal: Spacing.three,
-    paddingBottom: Spacing.two,
-  },
-
-  filterChip: {
-    paddingHorizontal: Spacing.three,
-    paddingVertical: Spacing.two,
-    borderRadius: 20,
-    borderWidth: 1,
-  },
-
   listContent: {
-    paddingHorizontal: Spacing.three,
+    padding: Spacing.three,
     gap: Spacing.three,
-    paddingBottom: 120,
   },
 
   orderCard: {
@@ -257,7 +217,7 @@ const styles = StyleSheet.create({
     padding: Spacing.four,
     gap: Spacing.three,
 
-    shadowColor: "#000",
+    shadowColor: '#000',
     shadowOffset: {
       width: 0,
       height: 2,
@@ -268,9 +228,9 @@ const styles = StyleSheet.create({
   },
 
   orderHeader: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "flex-start",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
   },
 
   statusBadge: {
@@ -284,13 +244,13 @@ const styles = StyleSheet.create({
   },
 
   orderBody: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
   },
 
   orderMeta: {
-    flexDirection: "row",
+    flexDirection: 'row',
     gap: Spacing.four,
   },
 
@@ -300,21 +260,39 @@ const styles = StyleSheet.create({
 
   metaLabel: {
     fontSize: 11,
-    textTransform: "uppercase",
+    textTransform: 'uppercase',
     letterSpacing: 0.5,
+  },
+
+  actionsRow: {
+    flexDirection: 'row',
+    gap: Spacing.two,
+    marginTop: Spacing.one,
+  },
+
+  actionButton: {
+    flex: 1,
+    paddingVertical: Spacing.two,
+    borderRadius: 12,
+    alignItems: 'center',
+  },
+
+  actionButtonText: {
+    fontSize: 13,
+    fontWeight: '700',
   },
 
   center: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: Spacing.six,
   },
 
   emptyState: {
     flex: 1,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     padding: Spacing.six,
     gap: Spacing.three,
   },
@@ -323,8 +301,8 @@ const styles = StyleSheet.create({
     width: 96,
     height: 96,
     borderRadius: 48,
-    justifyContent: "center",
-    alignItems: "center",
+    justifyContent: 'center',
+    alignItems: 'center',
     marginBottom: Spacing.two,
   },
 
@@ -337,6 +315,6 @@ const styles = StyleSheet.create({
   },
 
   emptySubtitle: {
-    textAlign: "center",
+    textAlign: 'center',
   },
 });

@@ -28,11 +28,14 @@ function AppTabsInner() {
           <TabTrigger name="index" href={"/" as any} asChild>
             <TabButton>Catalog</TabButton>
           </TabTrigger>
+          <TabTrigger name="active-orders" href={"/active-orders" as any} asChild>
+            <TabButton>Active Orders</TabButton>
+          </TabTrigger>
           <TabTrigger name="cart" href={"/cart" as any} asChild>
             <TabButton badge={itemCount > 0 ? String(itemCount) : undefined}>Order</TabButton>
           </TabTrigger>
-          <TabTrigger name="orders" href={"/orders" as any} asChild>
-            <TabButton>Orders</TabButton>
+          <TabTrigger name="order-history" href={"/order-history" as any} asChild>
+            <TabButton>Order History</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>

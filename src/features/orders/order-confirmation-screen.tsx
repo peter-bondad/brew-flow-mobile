@@ -54,7 +54,7 @@ export function OrderConfirmationScreen({ orderId, total }: OrderConfirmationScr
             styles.button,
             { backgroundColor: Colors.light.primary, opacity: pressed ? 0.85 : 1 },
           ]}
-          onPress={() => router.replace('/orders')}>
+           onPress={() => router.replace('/order-history')}>
           <Text style={[styles.buttonText, { color: Colors.light.primaryForeground }]}>
             View Orders
           </Text>

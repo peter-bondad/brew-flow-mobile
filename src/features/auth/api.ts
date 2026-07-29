@@ -7,7 +7,7 @@ const API_BASE_URL =
   Constants.expoConfig?.extra?.apiBaseUrl ?? "http://localhost:3000";
 
 async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T> {
-  const cookies = (authClient as unknown as { getCookie: () => string }).getCookie();
+  const cookies = (authClient as any).getCookie();
   const headers: Record<string, string> = {
     "Content-Type": "application/json",
     ...(cookies ? { Cookie: cookies } : {}),
@@ -34,17 +34,17 @@ async function authFetch<T>(path: string, options: RequestInit = {}): Promise<T>
 export async function login(
   credentials: LoginCredentials,
 ): Promise<AuthSession> {
-  const response = await authClient.signIn.email({
+  const response = await (authClient as any).signIn.email({
     email: credentials.email,
     password: credentials.password,
   });
 
-  return { user: (response as any).user };
+  return { user: (response as any).user as AuthSession["user"] };
 }
 
 export async function logout(): Promise<void> {
   try {
-    await authClient.signOut();
+    await (authClient as any).signOut();
   } catch {
     // ignore
   }
@@ -55,7 +55,7 @@ export function useAuth() {
     queryKey: ["auth", "session"],
     queryFn: async () => {
       try {
-        const session = (await authClient.getSession()) as { user?: AuthSession["user"] } | null;
+        const session = (await (authClient as any).getSession()) as { user?: AuthSession["user"] } | null;
         if (!session?.user) return null;
         return { user: session.user };
       } catch {

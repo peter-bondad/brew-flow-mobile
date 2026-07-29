@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import {
   Tabs,
   TabList,
@@ -6,26 +7,32 @@ import {
   TabTriggerSlotProps,
   TabListProps,
 } from 'expo-router/ui';
-import { SymbolView } from 'expo-symbols';
-import { Pressable, useColorScheme, View, StyleSheet } from 'react-native';
+import { Pressable, useColorScheme, View, Text, StyleSheet } from 'react-native';
 
-import { ExternalLink } from './external-link';
-import { ThemedText } from './themed-text';
-import { ThemedView } from './themed-view';
+import { ThemedText } from '@/components/themed-text';
+import { ThemedView } from '@/components/themed-view';
 
 import { Colors, MaxContentWidth, Spacing } from '@/constants/theme';
+import { useCart } from '@/features/cart/cart-context';
 
-export default function AppTabs() {
+function AppTabsInner() {
+  const scheme = useColorScheme();
+  const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
+  const { itemCount } = useCart();
+
   return (
     <Tabs>
       <TabSlot style={{ height: '100%' }} />
       <TabList asChild>
-        <CustomTabList>
-          <TabTrigger name="home" href="/" asChild>
-            <TabButton>Home</TabButton>
+        <CustomTabList cartCount={itemCount}>
+          <TabTrigger name="index" href={"/" as any} asChild>
+            <TabButton>Catalog</TabButton>
           </TabTrigger>
-          <TabTrigger name="explore" href="/explore" asChild>
-            <TabButton>Explore</TabButton>
+          <TabTrigger name="cart" href={"/cart" as any} asChild>
+            <TabButton badge={itemCount > 0 ? String(itemCount) : undefined}>Order</TabButton>
+          </TabTrigger>
+          <TabTrigger name="orders" href={"/orders" as any} asChild>
+            <TabButton>Orders</TabButton>
           </TabTrigger>
         </CustomTabList>
       </TabList>
@@ -33,21 +40,30 @@ export default function AppTabs() {
   );
 }
 
-export function TabButton({ children, isFocused, ...props }: TabTriggerSlotProps) {
+export const AppTabs = memo(AppTabsInner);
+
+export function TabButton({ children, isFocused, badge, ...props }: TabTriggerSlotProps & { badge?: string }) {
   return (
     <Pressable {...props} style={({ pressed }) => pressed && styles.pressed}>
       <ThemedView
         type={isFocused ? 'backgroundSelected' : 'backgroundElement'}
         style={styles.tabButtonView}>
-        <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
-          {children}
-        </ThemedText>
+        <View style={styles.tabButtonContent}>
+          <ThemedText type="small" themeColor={isFocused ? 'text' : 'textSecondary'}>
+            {children}
+          </ThemedText>
+          {badge ? (
+            <View style={[styles.badge, { backgroundColor: Colors.light.destructive }]}>
+              <Text style={styles.badgeText}>{badge}</Text>
+            </View>
+          ) : null}
+        </View>
       </ThemedView>
     </Pressable>
   );
 }
 
-export function CustomTabList(props: TabListProps) {
+export function CustomTabList(props: TabListProps & { cartCount?: number }) {
   const scheme = useColorScheme();
   const colors = Colors[scheme === 'unspecified' ? 'light' : scheme];
 
@@ -55,21 +71,10 @@ export function CustomTabList(props: TabListProps) {
     <View {...props} style={styles.tabListContainer}>
       <ThemedView type="backgroundElement" style={styles.innerContainer}>
         <ThemedText type="smallBold" style={styles.brandText}>
-          Expo Starter
+          BrewFlow
         </ThemedText>
 
         {props.children}
-
-        <ExternalLink href="https://docs.expo.dev" asChild>
-          <Pressable style={styles.externalPressable}>
-            <ThemedText type="link">Docs</ThemedText>
-            <SymbolView
-              tintColor={colors.text}
-              name={{ ios: 'arrow.up.right.square', web: 'link' }}
-              size={12}
-            />
-          </Pressable>
-        </ExternalLink>
       </ThemedView>
     </View>
   );
@@ -105,11 +110,26 @@ const styles = StyleSheet.create({
     paddingHorizontal: Spacing.three,
     borderRadius: Spacing.three,
   },
-  externalPressable: {
+  tabButtonContent: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
     gap: Spacing.one,
-    marginLeft: Spacing.three,
+    position: 'relative',
+  },
+  badge: {
+    position: 'absolute',
+    top: -8,
+    right: -12,
+    minWidth: 18,
+    height: 18,
+    borderRadius: 9,
+    justifyContent: 'center',
+    alignItems: 'center',
+    paddingHorizontal: 4,
+  },
+  badgeText: {
+    color: '#fff',
+    fontSize: 10,
+    fontWeight: '700',
   },
 });

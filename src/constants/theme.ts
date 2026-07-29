@@ -1,26 +1,41 @@
-/**
- * Below are the colors that are used in the app. The colors are defined in the light and dark mode.
- * There are many other ways to style your app. For example, [Nativewind](https://www.nativewind.dev/), [Tamagui](https://tamagui.dev/), [unistyles](https://reactnativeunistyles.vercel.app), etc.
- */
-
 import '@/global.css';
 
 import { Platform } from 'react-native';
 
 export const Colors = {
   light: {
-    text: '#000000',
-    background: '#ffffff',
-    backgroundElement: '#F0F0F3',
-    backgroundSelected: '#E0E1E6',
-    textSecondary: '#60646C',
+    text: '#3d2413',
+    background: '#fffaf5',
+    backgroundElement: '#fbf3eb',
+    backgroundSelected: '#f4e2cd',
+    textSecondary: '#7b5f46',
+    primary: '#6f3e1d',
+    primaryForeground: '#fff8ef',
+    secondary: '#f4e2cd',
+    secondaryForeground: '#4a2c1a',
+    border: '#e4c8a7',
+    destructive: '#dc2626',
+    success: '#16a34a',
+    warning: '#d97706',
+    card: '#fffdf9',
+    cardForeground: '#3d2413',
   },
   dark: {
-    text: '#ffffff',
-    background: '#000000',
-    backgroundElement: '#212225',
-    backgroundSelected: '#2E3135',
-    textSecondary: '#B0B4BA',
+    text: '#fbf3eb',
+    background: '#1c1410',
+    backgroundElement: '#2a1f18',
+    backgroundSelected: '#3d2413',
+    textSecondary: '#a88b6f',
+    primary: '#f4e2cd',
+    primaryForeground: '#3d2413',
+    secondary: '#3d2413',
+    secondaryForeground: '#f4e2cd',
+    border: '#4a2c1a',
+    destructive: '#fca5a5',
+    success: '#4ade80',
+    warning: '#fbbf24',
+    card: '#261c15',
+    cardForeground: '#fbf3eb',
   },
 } as const;
 
@@ -28,13 +43,9 @@ export type ThemeColor = keyof typeof Colors.light & keyof typeof Colors.dark;
 
 export const Fonts = Platform.select({
   ios: {
-    /** iOS `UIFontDescriptorSystemDesignDefault` */
     sans: 'system-ui',
-    /** iOS `UIFontDescriptorSystemDesignSerif` */
     serif: 'ui-serif',
-    /** iOS `UIFontDescriptorSystemDesignRounded` */
     rounded: 'ui-rounded',
-    /** iOS `UIFontDescriptorSystemDesignMonospaced` */
     mono: 'ui-monospace',
   },
   default: {
